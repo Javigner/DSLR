@@ -3,6 +3,7 @@ import numpy as np
 from math import sqrt
 import sys
 
+
 def describe_data(data):
     data = data[data.columns[6:19]]
     count = []
@@ -34,8 +35,6 @@ def describe_data(data):
     desc = np.transpose(desc)
     df = pd.DataFrame(desc, columns =column, index=['count','mean','std ','min', '25%', '50%', '75%', 'max'])
     print(df)
-        
-    
     
 def main():
     if (len(sys.argv) < 2):
