@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from math import sqrt
+import sys
 
 def describe_data(data):
     data = data[data.columns[6:19]]
@@ -25,17 +26,21 @@ def describe_data(data):
         std.append(sqrt(result))
         lmin.append(min(col))
         lmax.append(max(col))
-        test = (len(col) - 1) * 0.5
         Q1.append(col[int(len(col) * 0.25)])
         Q2.append(col[int(len(col) * 0.5)])
         Q3.append(col[int(len(col) * 0.75)])
-    print(Q2)
-            
+    desc = list(zip(count, mean, std, lmin, Q1, Q2, Q3, lmax))
+    column = data.columns.values
+    desc = np.transpose(desc)
+    df = pd.DataFrame(desc, columns =column, index=['count','mean','std ','min', '25%', '50%', '75%', 'max'])
+    print(df)
+        
+    
     
 def main():
-    df_test = pd.read_csv('dataset_test.csv')
-    df_train = pd.read_csv('dataset_train.csv')
-    print(df_train.describe())
+    if (len(sys.argv) < 2):
+        sys.exit('Please give a valid Dataset')
+    df_train = pd.read_csv(sys.argv[1])
     describe_data(df_train)
     
 if __name__ == "__main__":
