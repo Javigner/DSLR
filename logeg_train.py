@@ -3,9 +3,8 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from tqdm import tqdm
 import matplotlib.pyplot as plt
-from sklearn.linear_model import LogisticRegression 
-
-df = pd.read_csv('dataset_train.csv')
+from sklearn.model_selection import train_test_split
+import sys
 
 def sigmoid(z):
     return 1 / (1 + np.exp(-z))
@@ -28,52 +27,39 @@ def All_vs_one_train(X, y):
     y = np.array(y)
     theta = np.zeros(X.shape[1])
     theta = fit(X, y, theta, 2, 6000, X.shape[0])
-    pred = predict(X, theta)
-    return theta, pred
-    
-def main():
-    df = pd.read_csv('dataset_train.csv')
-    df = df.dropna()
-    y = df['Hogwarts House']
-   
-    #Preprocessing X
-    X = np.array(df[df.columns[6:19]])
-    scaler = StandardScaler()
-    scaler.fit(X)
-    X = scaler.transform(X)
-    X = np.c_[np.ones(X.shape[0]), X]
+    return theta
+
+def logistic_regression(X, y):
     y_grif = y.replace({'Slytherin': 0, 'Gryffindor': 1, 'Ravenclaw' : 0, 'Hufflepuff': 0})
     y_sly = y.replace({'Slytherin': 1, 'Gryffindor': 0, 'Ravenclaw' : 0, 'Hufflepuff': 0})
     y_rav = y.replace({'Slytherin': 0, 'Gryffindor': 0, 'Ravenclaw' : 1, 'Hufflepuff': 0})
     y_Huf = y.replace({'Slytherin': 0, 'Gryffindor': 0, 'Ravenclaw' : 0, 'Hufflepuff': 1})
-    thetaG, predG = All_vs_one_train(X, y_grif)
-    thetaS, predS = All_vs_one_train(X, y_sly)
-    thetaR, predR = All_vs_one_train(X, y_rav)
-    thetaH, predH = All_vs_one_train(X, y_Huf)
-    result = []
-    for i in range(len(predG)):
-        Max = 0
-        res = 0
-        if (predG[i] > predS[i]):
-            Max = predG[i]
-            res = 'Gryffindor'
-        else:
-            Max = predS[i]
-            res = 'Slytherin'
-        if (predR[i] > Max):
-            Max = predR[i]
-            res = 'Ravenclaw'
-        if (predH[i] > Max):
-            Max = predH[i]
-            res = 'Hufflepuff'
-        result.append(res)
-    y = df['Hogwarts House'].tolist()
-    somme = 0
-    for z in range(len(result)):
-        if (y[z] == result[z]):
-            somme += 1
-    print(somme / len(result))
-            
+    thetaG = All_vs_one_train(X, y_grif)
+    thetaS = All_vs_one_train(X, y_sly)
+    thetaR = All_vs_one_train(X, y_rav)
+    thetaH = All_vs_one_train(X, y_Huf)
+    return thetaG, thetaS, thetaR, thetaH
+    
+def main():
+    if (len(sys.argv) < 2):
+        sys.exit('Please give a valid Dataset')
+    df = pd.read_csv(sys.argv[1])
+    df = df.fillna(df.mean())
+    y = df['Hogwarts House']
+    #Preprocessing X
+    df = df[df.columns[8:19]]
+    df = df.drop('Care of Magical Creatures', axis=1)
+    X = np.array(df)
+    scaler = StandardScaler()
+    scaler.fit(X)
+    X = scaler.transform(X)
+    X = np.c_[np.ones(X.shape[0]), X]
+    #X, X_test, y, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    thetaG, thetaS, thetaR, thetaH = logistic_regression(X, y)
+    theta = [thetaG, thetaS, thetaR, thetaH]
+    theta = np.array(theta)
+    np.savetxt("theta.csv", theta.T, delimiter=",", header="Gryffindor,Slytherin,Ravenclaw,Hufflepuf", comments="")    
+    #logistic_regression(X_test, y_test)
     
 if __name__ == "__main__":
     main();
