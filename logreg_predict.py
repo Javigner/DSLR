@@ -1,8 +1,12 @@
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
 import sys
+
+def StandardScaler(X):
+    mean = np.mean(X, axis=0)
+    scale = np.std(X - mean, axis=0)
+    return (X - mean) / scale
 
 def sigmoid(z):
     return 1 / (1 + np.exp(-z))
@@ -11,18 +15,16 @@ def predict(X, theta):
       return(sigmoid(np.dot(X, theta)))
   
 def main():
-    theta = pd.read_csv('theta.csv')
-    if (len(sys.argv) < 2):
-        sys.exit('Please give a valid Dataset')
+    if (len(sys.argv) < 3):
+        sys.exit('Please give valid parameters')
+    theta = pd.read_csv(sys.argv[2])
     df = pd.read_csv(sys.argv[1])
     df = df.fillna(df.mean())
     y = df['Hogwarts House']
     df = df[df.columns[8:19]]
     df = df.drop('Care of Magical Creatures', axis=1)
     X = np.array(df)
-    scaler = StandardScaler()
-    scaler.fit(X)
-    X = scaler.transform(X)
+    X = StandardScaler(X)
     X = np.c_[np.ones(X.shape[0]), X]
     thetaG = theta['Gryffindor']
     thetaS = theta['Slytherin']
@@ -33,6 +35,7 @@ def main():
     predR = predict(X, thetaR)
     predH = predict(X, thetaH)
     result = []
+    
     for i in range(len(predG)):
         Max = 0
         res = 0

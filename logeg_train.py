@@ -1,10 +1,13 @@
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import StandardScaler
 from tqdm import tqdm
 import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split
 import sys
+
+def StandardScaler(X):
+    mean = np.mean(X, axis=0)
+    scale = np.std(X - mean, axis=0)
+    return (X - mean) / scale
 
 def sigmoid(z):
     return 1 / (1 + np.exp(-z))
@@ -15,17 +18,28 @@ def predict(X, theta):
 def cost(X, y, theta):
     return((-1 / X.shape[0]) * np.sum(y * np.log(predict(X, theta)) + (1 - y) * np.log(1 - predict(X, theta))))
 
+def lr_decay(lr, epoch):
+    decay = lr / (epoch + 1)
+    lr *= (1. / (1. + decay * epoch))
+    return lr
+    
 def fit(X, y, theta, alpha, num_iters, m):
-    tmp = theta
-    for _ in tqdm(range(num_iters)):
+    costs = []
+    for epoch in tqdm(range(num_iters)):
         theta = theta - alpha * (1.0 / len(X)) * (np.dot((predict(X, theta) - y), X))
-        if tmp.all() == theta.all():
-            break;
+        costs.append(cost(X, y, theta))
+        alpha = lr_decay(alpha, epoch)
+    x = np.arange(len(costs))
+    plt.plot(x, costs)
+    plt.show()
     return theta
+
+def Xavier_initalization(X):
+    return np.random.randn(X.shape[1]) * np.sqrt(1 / X.shape[1])
 
 def All_vs_one_train(X, y):
     y = np.array(y)
-    theta = np.zeros(X.shape[1])
+    theta = Xavier_initalization(X)
     theta = fit(X, y, theta, 2, 6000, X.shape[0])
     return theta
 
@@ -50,9 +64,7 @@ def main():
     df = df[df.columns[8:19]]
     df = df.drop('Care of Magical Creatures', axis=1)
     X = np.array(df)
-    scaler = StandardScaler()
-    scaler.fit(X)
-    X = scaler.transform(X)
+    X = StandardScaler(X)
     X = np.c_[np.ones(X.shape[0]), X]
     #X, X_test, y, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
     thetaG, thetaS, thetaR, thetaH = logistic_regression(X, y)
